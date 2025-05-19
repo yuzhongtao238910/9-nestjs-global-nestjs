@@ -1,0 +1,31 @@
+{
+  "name": "3-start-hand",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "start": "ts-node ./src/main.ts",
+    "start:dev": "ts-node -r tsconfig-paths/register ./src/main.ts",
+    "start:dev:watch": "nodemon"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "@nestjs/common": "^11.0.13",
+    "@nestjs/core": "^11.0.13",
+    "@nestjs/platform-express": "^11.0.13",
+    "@types/node": "^22.14.0",
+    "cli-color": "^2.0.4",
+    "express": "^5.1.0",
+    "express-session": "^1.18.1",
+    "nodemon": "^3.1.9",
+    "reflect-metadata": "^0.2.2",
+    "rxjs": "^7.8.2",
+    "ts-node": "^10.9.2"
+  },
+  "devDependencies": {
+    "tsconfig-paths": "^4.2.0",
+    "typescript": "^5.8.3"
+  }
+}
