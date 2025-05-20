@@ -6,8 +6,12 @@ export class CoreService {
 
     }
 
-    loggger(message) {
+    logger(message) {
         console.log("CoreService:" + message)
+    }
+
+    demo1() {
+        console.log("demo1")
     }
 }
 

@@ -82,6 +82,7 @@ export class NestApplication {
                 this.registerProvidersFromModule(exportToken)
             } else {
                 const provider = importedProviders.find(provider => provider === exportToken || provider.provide === exportToken)
+
                 // 解决第一个问题：需要使用exports进行过滤
                 if (provider) {
                     this.addprovider(provider)
@@ -141,6 +142,8 @@ export class NestApplication {
             const value = new provider(...dependencies)
             this.providers.set(provider, value)
         }
+
+        console.log(this.providers, 146)
     }
 
 
@@ -154,7 +157,6 @@ export class NestApplication {
 
 
         return constructorParams?.map((param, index) => {
-
             return this.getProviderByToken(injectedTokens[index] ?? param)
 
         }) || []
@@ -172,8 +174,6 @@ export class NestApplication {
         for (const Controller of controllers) {
 
             const dependencies = this.resolveDependencies(Controller)
-
-            
 
             const controller = new Controller(...dependencies)
             // 获取控制器类的路径前缀

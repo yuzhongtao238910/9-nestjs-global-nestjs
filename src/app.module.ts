@@ -3,7 +3,7 @@ import { AppController } from "./app.controller"
 // import { AppService } from "./app.service"
 // import { LoggerService } from "./logger.service"
 // import { LoggerModule } from "./logger.module"
-import { CoreModule } from "./core.module"
+// import { CoreModule } from "./core.module"
 import { CommonModule } from "./common.module"
 import { OtherModule } from "./other.module"
 @Module({
@@ -17,6 +17,7 @@ import { OtherModule } from "./other.module"
     // ],
     imports: [
         // LoggerModule
+        // CoreModule,
         // CoreModule,
         CommonModule,
         OtherModule

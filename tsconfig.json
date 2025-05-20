@@ -19,9 +19,9 @@
       "forceConsistentCasingInFileNames": false,
       "noFallthroughCasesInSwitch": false,
       "baseUrl": "./",
-      // "paths": {
-      //   "@nestjs/*": ["src/@nestjs/*"]
-      // }
+      "paths": {
+        "@nestjs/*": ["src/@nestjs/*"]
+      }
     },
     "include": ["src/**/*"],
     "exclude": ["node_modules", "dist"]
