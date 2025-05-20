@@ -19,8 +19,8 @@ import { OtherModule } from "./other.module"
         // LoggerModule
         // CoreModule,
         // CoreModule,
-        CommonModule,
-        OtherModule
+        // CommonModule,
+        // OtherModule
     ]
 })
 export class AppModule {}

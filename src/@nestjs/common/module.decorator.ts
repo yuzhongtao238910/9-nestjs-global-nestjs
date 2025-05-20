@@ -32,6 +32,39 @@ export function Module(metadata: ModuleMetadata): ClassDecorator {
         // 标识是一个模块
         Reflect.defineMetadata("isModule", true, target)
 
+
+        // 把控制器得类和提供者得类都对应得模块进行关联
+        // 给控制器
+        defineModule(target, metadata.controllers)
+
+      
+
+        // let providers = (metadata.providers ?? []).filter(Boolean).map(provider => {
+        //     if (provider instanceof Function) {
+        //         return provider
+        //     } else if (provider?.useClass instanceof Function) {
+        //         return provider.useClass
+        //     } else {
+        //         return null
+        //     }
+        // }).filter(Boolean)
+
+        // defineModule(target, providers)
+
+        defineModule(target, metadata.providers)
+
+        console.log(metadata.controllers, "metadata.controllers")
+        console.log(metadata.providers, "metadata.providers")
+
     }
+}
+
+export function defineModule( nestModule, targets = []) {
+    // 遍历targets数组，为每个元素添加元数据
+    // key：nestModule
+    // value：nestModule是对应得模块
+    targets.forEach(target => {
+        Reflect.defineMetadata("nestModule", nestModule, target)
+    })
 }
 

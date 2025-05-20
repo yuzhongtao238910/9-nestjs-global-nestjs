@@ -9,6 +9,16 @@ export class NestApplication {
 
     // 在此处保存全部的providers
     private readonly providers = new Map<any, any>()
+
+
+    // 在此处保存所有得provider得实例，key就是token，值就是类得实例
+    private readonly providerInstances = new Map<any, any>()
+
+
+    // 需要实现模块之间得隔离
+    // 记录每个模块之中有哪些provider得token
+    private readonly modulesProviders = new Map<any, any>()
+
     constructor(private readonly module: any) {
         this.initProviders()
     }
@@ -105,12 +115,33 @@ export class NestApplication {
     }
 
 
-    private addprovider(provider) {
+    /**
+     * 原来得provider都混在了一起，现在需要分开，每个模块有自己得provider
+     * 需要记录自己得provider
+     * @param provider 
+     * @returns 
+     */
+    private addprovider(provider, module) {
+
+        /**
+         * let modulesProviders = {
+         *     appModule: new Set(),
+         *     CommonModule: new Set(),
+         *     OtherModule: new Set(),
+         * }
+         */
+        // 获取当前模块的providers
+        // 此providers代表module这个模块的providers得token
+        const providers = this.modulesProviders.get(module) ?? new Set()
+
+        if (!this.modulesProviders.has(module)) {
+            this.modulesProviders.set(module, providers)
+        }
 
         // 为了避免循环依赖，每次添加前可以做判断，如果map里面已经存在，那么就直接返回了
-        const injectToken = provider.provide ?? provider
-        // 如果已经注册过了，就不要往下走了
-        if (this.providers.has(injectToken)) return;
+        // const injectToken = provider.provide ?? provider
+        // // 如果已经注册过了，就不要往下走了
+        // if (this.providers.has(injectToken)) return;
 
 
         if (provider.provide && provider.useClass) {
@@ -121,11 +152,13 @@ export class NestApplication {
             // 创建提供者类的实例
             const value = new Clazz(...dependencies)
             // 最后注册provider
-            this.providers.set(provider.provide, value)
+            // this.providers.set(provider.provide, value)
+            this.providerInstances.set(provider.provide, value)
 
         } else if (provider.provide && provider.useValue) {
             // 如果提供的是一个值，那么就直接放到map里面哈
-            this.providers.set(provider.provide, provider.useValue)
+            // this.providers.set(provider.provide, provider.useValue)
+            this.providerInstances.set(provider.provide, provider.useValue)
         } else if (provider.provide && provider.useFactory) {
             // 1- 获取要注入工厂函数的参数
             const inject = provider.inject ?? []
@@ -136,14 +169,16 @@ export class NestApplication {
             // 3- 执行工厂方法获取返回的值
             const value = provider.useFactory(...injectedValues)
             // 4- 注册
-            this.providers.set(provider.provide, value)
+            // this.providers.set(provider.provide, value)
+            this.providerInstances.set(provider.provide, value)
         } else {
             const dependencies = this.resolveDependencies(provider) ?? []
             const value = new provider(...dependencies)
-            this.providers.set(provider, value)
+            // this.providers.set(provider, value)
+            this.providerInstances.set(provider, value)
         }
 
-        console.log(this.providers, 146)
+        // console.log(this.providers, 146)
     }
 
 
