@@ -1,7 +1,7 @@
 import express, { Express, Request as ExpressRequest, Response as ExpressResponse, 
     NextFunction  } from "express"
 import path from "path"
-import { INJECTED_TOKENS, DESGIN_PARAMTYPES } from "@nestjs/common"
+import { INJECTED_TOKENS, DESGIN_PARAMTYPES, defineModule } from "@nestjs/common"
 import { AppModule } from "src/app.module"
 import { CommonModule } from "src/common.module"
 
@@ -76,7 +76,48 @@ export class NestApplication {
             // 第2个问题：exports之中可能还有module， 需要进行递归处理
 
 
-            this.registerProvidersFromModule(importModule, this.module)
+            // 再这块来区分是否是动态模块哈
+
+            if ('module' in importModule) {
+                // 如果导入的模块有module属性，说明这个个是一个动态模块
+                const { module, providers, exports, controllers } = importModule
+
+                const oldProviders = Reflect.getMetadata("providers", module) ?? []
+                // console.log(oldProviders, "oldProviders")
+                // 需要和之前的老的进行合并，就是和@Module里面的providers以及exports进行合并哈
+                const newProviders = [
+                    ...(oldProviders ?? []),
+                    ...(providers ?? [])
+                ]
+
+                const oldExports = Reflect.getMetadata("exports", module) ?? []
+                const newExports = [
+                    ...(oldExports ?? []),
+                    ...(exports ?? [])
+                ]
+
+                const oldControllers = Reflect.getMetadata("controllers", module) ?? []
+                const newControllers = [
+                    ...(oldControllers ?? []),
+                    ...(controllers ?? [])
+                ]
+
+                // 需要把新的providers和exports进行合并
+                Reflect.defineMetadata("providers", newProviders, module)
+                Reflect.defineMetadata("exports", newExports, module)
+                Reflect.defineMetadata("controllers", newControllers, module)
+
+                defineModule(module, newProviders)
+                defineModule(module, newControllers)
+                
+                this.registerProvidersFromModule(module, this.module)
+                
+            } else {
+                // 普通模块哈
+                this.registerProvidersFromModule(importModule, this.module)
+            }
+
+            
         }
 
         // 遍历并且添加每一个提供者

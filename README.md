@@ -36,4 +36,8 @@ export class DatabaseModule {
         }
     }
 }
+
+
+import { DynamicConfigModule } from "./dynamicConfig.module"
+DynamicConfigModule.forRoot()
 ```

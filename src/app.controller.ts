@@ -2,6 +2,7 @@ import { Controller, Get, Req, Inject } from "@nestjs/common"
 import { CoreService } from "./core.service"
 import { CommonService } from "./common.service"
 import { OtherService } from "./other.service"
+import { AppService } from "./app.service"
 @Controller()
 export class AppController {
 
@@ -17,7 +18,8 @@ export class AppController {
         // private readonly commonService: CommonService
 
 
-        private readonly otherService: OtherService,
+        // private readonly otherService: OtherService,
+        private readonly appService: AppService
         // private readonly commonService: CommonService
 
     ) {
@@ -27,7 +29,7 @@ export class AppController {
     @Get("other")
     getOther() { 
         
-        this.otherService.logger("otherService")
+        // this.otherService.logger("otherService")
         // this.commonService.logger("commonService")
         return "other"
     }
@@ -58,5 +60,11 @@ export class AppController {
         // this.commonService.logger("commonService")
 
         return "module"
+    }
+
+
+    @Get("config")
+    getConfig() {
+        return this.appService.getConfig()
     }
 }
