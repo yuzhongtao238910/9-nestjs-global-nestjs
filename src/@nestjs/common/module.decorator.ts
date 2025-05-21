@@ -68,3 +68,9 @@ export function defineModule( nestModule, targets = []) {
     })
 }
 
+// 此时所有的导出的provider都变成全局的了
+export function Global() {
+    return function (target: Function) {
+        Reflect.defineMetadata("global", true, target)
+    }
+}

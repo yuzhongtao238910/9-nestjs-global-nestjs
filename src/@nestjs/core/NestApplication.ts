@@ -14,6 +14,10 @@ export class NestApplication {
     // 在此处保存所有得provider得实例，key就是token，值就是类得实例
     private readonly providerInstances = new Map<any, any>()
 
+    // 此处存放着全局的provider
+    // 保存全局得provider
+    private readonly globalProviders = new Set<any>()
+
 
     // 需要实现模块之间得隔离
     // 记录每个模块之中有哪些provider得token
@@ -69,16 +73,21 @@ export class NestApplication {
             // 第2个问题：exports之中可能还有module， 需要进行递归处理
 
 
-            this.registerProvidersFromModule(importModule)
+            this.registerProvidersFromModule(importModule, this.module)
         }
 
         // 遍历并且添加每一个提供者
         for (const provider of selfProviders) {
-            this.addprovider(provider)
+            this.addprovider(provider, this.module)
         }
     }
 
-    private registerProvidersFromModule(module) {
+    private registerProvidersFromModule(module, ...parentModules) {
+
+        // 获取导入的是不是全局模块，是否有这个元数据
+        const global = Reflect.getOwnMetadata("global", module)
+
+
         const exports = Reflect.getOwnMetadata("exports", module) ?? []
 
         const importedProviders = Reflect.getMetadata("providers", module) ?? []
@@ -89,13 +98,17 @@ export class NestApplication {
 
             if (this.isModule(exportToken)) {
                 // 执行递归操作
-                this.registerProvidersFromModule(exportToken)
+                this.registerProvidersFromModule(exportToken, module, ...parentModules)
             } else {
                 const provider = importedProviders.find(provider => provider === exportToken || provider.provide === exportToken)
 
                 // 解决第一个问题：需要使用exports进行过滤
                 if (provider) {
-                    this.addprovider(provider)
+                    // 子模块 父模块
+                    [module, ...parentModules].forEach(module => {
+                        this.addprovider(provider, module, global)
+                    })
+                    // this.addprovider(provider, module)
                 }
             }
 
@@ -121,7 +134,7 @@ export class NestApplication {
      * @param provider 
      * @returns 
      */
-    private addprovider(provider, module) {
+    private addprovider(provider, module, global = false) {
 
         /**
          * let modulesProviders = {
@@ -132,11 +145,17 @@ export class NestApplication {
          */
         // 获取当前模块的providers
         // 此providers代表module这个模块的providers得token
-        const providers = this.modulesProviders.get(module) ?? new Set()
+        const providers = global ? this.globalProviders : (this.modulesProviders.get(module) ?? new Set())
 
         if (!this.modulesProviders.has(module)) {
             this.modulesProviders.set(module, providers)
         }
+
+
+        // let providers = this.modulesProviders.get(module)
+        // if (!providers) {
+
+        // }
 
         // 为了避免循环依赖，每次添加前可以做判断，如果map里面已经存在，那么就直接返回了
         // const injectToken = provider.provide ?? provider
@@ -148,41 +167,45 @@ export class NestApplication {
             // 1- 获取类的定义 
             const Clazz = provider.useClass
             // 2- 获取此类的参数
-            const dependencies = this.resolveDependencies(Clazz)
+            const dependencies = this.resolveDependencies(Clazz, module)
             // 创建提供者类的实例
             const value = new Clazz(...dependencies)
             // 最后注册provider
             // this.providers.set(provider.provide, value)
             this.providerInstances.set(provider.provide, value)
+            providers.add(provider.provide)
 
         } else if (provider.provide && provider.useValue) {
             // 如果提供的是一个值，那么就直接放到map里面哈
             // this.providers.set(provider.provide, provider.useValue)
             this.providerInstances.set(provider.provide, provider.useValue)
+            providers.add(provider.provide)
         } else if (provider.provide && provider.useFactory) {
             // 1- 获取要注入工厂函数的参数
             const inject = provider.inject ?? []
             // 2- 解析出来参数的值
             const injectedValues = inject.map((injectToken) => {
-                return this.getProviderByToken(injectToken)
+                return this.getProviderByToken(injectToken, module)
             })
             // 3- 执行工厂方法获取返回的值
             const value = provider.useFactory(...injectedValues)
             // 4- 注册
             // this.providers.set(provider.provide, value)
             this.providerInstances.set(provider.provide, value)
+            providers.add(provider.provide)
         } else {
-            const dependencies = this.resolveDependencies(provider) ?? []
+            const dependencies = this.resolveDependencies(provider, module) ?? []
             const value = new provider(...dependencies)
             // this.providers.set(provider, value)
             this.providerInstances.set(provider, value)
+            providers.add(provider)
         }
 
         // console.log(this.providers, 146)
     }
 
 
-    private resolveDependencies(Class) {
+    private resolveDependencies(Class, module1) {
         
         // 取得注入的token
         const injectedTokens = Reflect.getMetadata(INJECTED_TOKENS, Class) ?? []
@@ -192,15 +215,33 @@ export class NestApplication {
 
 
         return constructorParams?.map((param, index) => {
-            return this.getProviderByToken(injectedTokens[index] ?? param)
+
+            const module = Reflect.getMetadata("nestModule", Class)
+
+
+            return this.getProviderByToken(injectedTokens[index] ?? param, module)
 
         }) || []
 
     }
 
 
-    private getProviderByToken(injectedToken) {
-        return this.providers.get(injectedToken) ?? injectedToken
+    private getProviderByToken(injectedToken, module) {
+
+        // 先判断是不是全局的
+
+
+
+
+        // 如何通过token再特定的模块下找到对应的provider
+        // 1- 先找到此模块对应的token set
+        // 在判断此injectedToken在不在此set之中
+        // return this.providers.get(injectedToken) ?? injectedToken
+        if (this.modulesProviders.get(module)?.has(injectedToken)) {
+            return this.providerInstances.get(injectedToken)
+        } else if (this.globalProviders.has(injectedToken)) {
+            return this.providerInstances.get(injectedToken)
+        }
     }
     async init() {
         const controllers = Reflect.getOwnMetadata("controllers", this.module) || []
@@ -208,7 +249,7 @@ export class NestApplication {
 
         for (const Controller of controllers) {
 
-            const dependencies = this.resolveDependencies(Controller)
+            const dependencies = this.resolveDependencies(Controller, this.module)
 
             const controller = new Controller(...dependencies)
             // 获取控制器类的路径前缀

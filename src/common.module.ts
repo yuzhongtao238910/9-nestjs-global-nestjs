@@ -1,9 +1,9 @@
 import { CommonService } from "./common.service";
-import { Module } from "@nestjs/common";
+import { Module, Global } from "@nestjs/common";
 
 
 // 此时里面的所有的模块都是全局的了
-// @Global()
+@Global()
 @Module({
     providers: [
         CommonService
