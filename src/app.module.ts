@@ -31,7 +31,8 @@ import { DynamicConfigModule } from "./dynamicConfig.module"
         // OtherModule,
         // 动态模块需要调用forRoot方法
         // 需要让import来支持动态模块
-        DynamicConfigModule.forRoot()
+        // 这块是可以传参数的
+        DynamicConfigModule.forRoot("params")
     ],
     exports: [
         AppService

@@ -17,27 +17,43 @@ export interface Config {
     ]
 })
 export class DynamicConfigModule {
-    static forRoot(entities = [], options?): DynamicModule {
+    static forRoot(apiKey: string): DynamicModule | Promise<DynamicModule> {
 
+        // 根据参数来动态的创建providers
         const providers = [
             {
                 provide: 'CONFIG',
                 useValue: {
-                    apiKey: '123'
+                    apiKey: apiKey
                 }
             }
         ]
 
         const controllers = []
-        return {
-            module: DynamicConfigModule,
-            // 新的provider数组
-            providers: providers,
-            exports: providers.map(item => {
-                // 类：
-                return item instanceof Function ? item : item.provide
-            }),
-            controllers: controllers
-        }
+        // return {
+        //     module: DynamicConfigModule,
+        //     // 新的provider数组
+        //     providers: providers,
+        //     exports: providers.map(item => {
+        //         // 类：
+        //         return item instanceof Function ? item : item.provide
+        //     }),
+        //     controllers: controllers
+        // }
+
+        return new Promise((resolve, reject) => {
+            setTimeout(() => {
+                resolve({
+                    module: DynamicConfigModule,
+                    // 新的provider数组
+                    providers: providers,
+                    exports: providers.map(item => {
+                        // 类：
+                        return item instanceof Function ? item : item.provide
+                    }),
+                    controllers: controllers
+                })
+            }, 3000)
+        })
     }
 }

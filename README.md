@@ -41,3 +41,7 @@ export class DatabaseModule {
 import { DynamicConfigModule } from "./dynamicConfig.module"
 DynamicConfigModule.forRoot()
 ```
+
+- 动态模块的意义：
+    - 1- 传参数
+    - 2- 异步

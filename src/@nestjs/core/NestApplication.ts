@@ -27,11 +27,11 @@ export class NestApplication {
     private readonly modulesProviders = new Map<any, any>()
 
     constructor(private readonly module: any) {
-        this.initProviders()
+        
     }
 
 
-    private initProviders() {
+    async initProviders() {
         const imports = Reflect.getOwnMetadata("imports", this.module) ?? []
 
 
@@ -78,9 +78,15 @@ export class NestApplication {
 
             // 再这块来区分是否是动态模块哈
 
-            if ('module' in importModule) {
+            let importedModule = importModule
+            if (importModule instanceof Promise) {
+                // 如果导入的是一个promise，说明是一个异步的动态模块
+                importedModule = await importModule
+            }
+
+            if ('module' in importedModule) {
                 // 如果导入的模块有module属性，说明这个个是一个动态模块
-                const { module, providers, exports, controllers } = importModule
+                const { module, providers, exports, controllers } = importedModule
 
                 const oldProviders = Reflect.getMetadata("providers", module) ?? []
                 // console.log(oldProviders, "oldProviders")
@@ -114,7 +120,7 @@ export class NestApplication {
                 
             } else {
                 // 普通模块哈
-                this.registerProvidersFromModule(importModule, this.module)
+                this.registerProvidersFromModule(importedModule, this.module)
             }
 
             
@@ -470,6 +476,8 @@ export class NestApplication {
 
 
     async listen(port: number) {
+        // 在这块支持异步
+        await this.initProviders()
         await this.init()
         // 调用express实例的listen方法启动一个express的app服务器，监听port端口
         this.app.listen(port, () => {
