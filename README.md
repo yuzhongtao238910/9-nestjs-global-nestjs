@@ -9,3 +9,31 @@
 - 模块的隔离原则
     - 每一个模块只能够访问自己的providers以及导入的providers，别的模块的providers是不能访问的
     - 否则就会报错
+
+
+
+- parentModules
+
+- 全局模块
+
+- 动态模块
+    - 轻松创建可以注册和配置提供者的自定义模块，提供者可以自定义的
+    - 动态模块是扩展了，而不是覆盖了之前的元数据
+```typescript
+
+@Module({
+    providers: [Connection],
+    exports: [Connection]
+})
+export class DatabaseModule {
+    static forRoot(entities = [], options?): DynamicModule {
+        const providers = createDatabaseProviders(options, entities)
+
+        return {
+            module: DatabaseModule,
+            providers: providers,
+            exports: providers
+        }
+    }
+}
+```

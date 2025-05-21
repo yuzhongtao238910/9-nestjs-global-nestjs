@@ -53,9 +53,6 @@ export function Module(metadata: ModuleMetadata): ClassDecorator {
 
         defineModule(target, metadata.providers)
 
-        console.log(metadata.controllers, "metadata.controllers")
-        console.log(metadata.providers, "metadata.providers")
-
     }
 }
 

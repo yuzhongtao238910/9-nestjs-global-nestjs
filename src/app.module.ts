@@ -6,6 +6,7 @@ import { AppController } from "./app.controller"
 // import { CoreModule } from "./core.module"
 import { CommonModule } from "./common.module"
 import { OtherModule } from "./other.module"
+// import { Common2Module } from "./common2.module"
 @Module({
     controllers: [AppController],
     // providers: [
@@ -19,8 +20,10 @@ import { OtherModule } from "./other.module"
         // LoggerModule
         // CoreModule,
         // CoreModule,
+       
+        // Common2Module,
         CommonModule,
-        OtherModule
+        OtherModule,
     ]
 })
 export class AppModule {}

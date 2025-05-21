@@ -17,7 +17,8 @@ export class AppController {
         // private readonly commonService: CommonService
 
 
-        private readonly otherService: OtherService
+        private readonly otherService: OtherService,
+        // private readonly commonService: CommonService
 
     ) {
 
@@ -25,7 +26,9 @@ export class AppController {
 
     @Get("other")
     getOther() { 
+        
         this.otherService.logger("otherService")
+        // this.commonService.logger("commonService")
         return "other"
     }
 

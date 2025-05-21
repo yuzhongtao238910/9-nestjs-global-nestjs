@@ -2,13 +2,16 @@ import express, { Express, Request as ExpressRequest, Response as ExpressRespons
     NextFunction  } from "express"
 import path from "path"
 import { INJECTED_TOKENS, DESGIN_PARAMTYPES } from "@nestjs/common"
+import { AppModule } from "src/app.module"
+import { CommonModule } from "src/common.module"
+
 export class NestApplication {
 
 
     private readonly app: Express = express()
 
     // 在此处保存全部的providers
-    private readonly providers = new Map<any, any>()
+    // private readonly providers = new Map<any, any>()
 
 
     // 在此处保存所有得provider得实例，key就是token，值就是类得实例
@@ -80,6 +83,18 @@ export class NestApplication {
         for (const provider of selfProviders) {
             this.addprovider(provider, this.module)
         }
+
+        // console.log(this.modulesProviders, "this.modulesProviders")
+        // console.log(this.providerInstances, "this.providerInstances")
+        // console.log(this.globalProviders, "this.globalProviders")
+
+        // setTimeout(() => {
+        //     let app1 = this.modulesProviders.get(AppModule)
+        //     let app2 = this.modulesProviders.get(CommonModule)
+        //     console.log(app1, "this.modulesProviders.get(AppModule)")
+        //     console.log(app2, "this.modulesProviders.get(CommonModule)")
+        //     console.log(app1 === app2, "this.modulesProviders.get(AppModule) === this.modulesProviders.get(CommonModule)")
+        // }, 1000)
     }
 
     private registerProvidersFromModule(module, ...parentModules) {
@@ -136,6 +151,8 @@ export class NestApplication {
      */
     private addprovider(provider, module, global = false) {
 
+
+        
         /**
          * let modulesProviders = {
          *     appModule: new Set(),
@@ -150,6 +167,20 @@ export class NestApplication {
         if (!this.modulesProviders.has(module)) {
             this.modulesProviders.set(module, providers)
         }
+
+        // 如果token对应的实例已经有了，就不再需要实例化了
+
+        // 获取要注册的provider的token
+        let injectToken = provider.provide ?? provider
+        // 判断是否已经注册过了
+        if (this.providerInstances.has(injectToken)) {
+            // 实例池子里面已经有此token对应的实例了，就不再需要创建了
+            providers.add(injectToken)
+            return
+        }
+
+
+
 
 
         // let providers = this.modulesProviders.get(module)
@@ -241,6 +272,8 @@ export class NestApplication {
             return this.providerInstances.get(injectedToken)
         } else if (this.globalProviders.has(injectedToken)) {
             return this.providerInstances.get(injectedToken)
+        } else {
+            return null
         }
     }
     async init() {
